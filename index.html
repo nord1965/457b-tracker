@@ -80,3 +80,43 @@
 .header-inner{flex-direction:column;gap:16px}
 #balanceInput{width:160px}
 .tbl-head,.fund-row{grid-template-columns:1fr 40px 78px 80px 82px 24px;gap:5px}
+}
+</style>
+
+</head>
+<body>
+
+<div id="header">
+  <div class="header-inner">
+    <div>
+      <div class="plan-label">457(b) · City of Sunrise · MissionSquare Plan #303120</div>
+      <div class="total-balance" id="displayBalance">$1,032,062</div>
+      <div class="badges">
+        <span class="badge-label">Total Account Value · 100% Vested</span>
+        <span class="badge badge-ytd">+11.6% YTD</span>
+        <span class="badge badge-q4"><small>Q4</small>+$3,437 · +1.7%</span>
+        <span class="badge badge-loading" id="dailyBadge"><small>Today</small><span id="dailyText">Fetching…</span></span>
+      </div>
+    </div>
+    <div class="edit-balance-wrap">
+      <div class="edit-balance-label">Edit Balance</div>
+      <input type="number" id="balanceInput" value="1032061.99" step="0.01"/>
+    </div>
+  </div>
+  <div class="alloc-bar" id="allocBar"></div>
+</div>
+
+<div id="liveBar">
+  <div class="live-dot loading" id="liveDot"></div>
+  <span id="liveStatus">Fetching live ETF proxy prices via Yahoo Finance…</span>
+  <span style="margin-left:auto;opacity:0.5" id="lastUpdated"></span>
+</div>
+
+<div class="body-grid">
+  <div class="card">
+    <div class="alloc-header">
+      <div>
+        <div class="card-title">Investment Allocation</div>
+        <div class="card-sub" id="allocStatus">✓ Fully allocated</div>
+      </div>
+      <div>
