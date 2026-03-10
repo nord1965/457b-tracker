@@ -1,1 +1,82 @@
+<!DOCTYPE html>
 
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>457(b) Tracker — City of Sunrise</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans',sans-serif;background:#F4F7FB;min-height:100vh}
+
+#header{background:linear-gradient(135deg,#0F2447 0%,#1B3A6B 50%,#2E6DA4 100%);padding:36px 48px 30px;position:relative;overflow:hidden}
+#header::before{content:’’;position:absolute;top:-60px;right:-60px;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,0.03)}
+#header::after{content:’’;position:absolute;bottom:-40px;left:30%;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,0.02)}
+.header-inner{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1}
+.plan-label{font-size:11px;font-weight:500;color:rgba(255,255,255,0.5);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:8px}
+.total-balance{font-family:‘Playfair Display’,serif;font-size:42px;font-weight:700;color:white;line-height:1.1}
+.badges{margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.badge-label{font-size:14px;color:rgba(255,255,255,0.65)}
+.badge{font-size:13px;font-weight:500;padding:3px 11px;border-radius:20px;display:inline-flex;align-items:center;gap:5px}
+.badge-ytd{color:#7EDBA8;background:rgba(126,219,168,0.15)}
+.badge-q4{color:#7EDBA8;background:rgba(126,219,168,0.12);border:1px solid rgba(126,219,168,0.3)}
+.badge-pos{color:#7EDBA8;background:rgba(126,219,168,0.12);border:1px solid rgba(126,219,168,0.3)}
+.badge-neg{color:#F08080;background:rgba(240,128,128,0.12);border:1px solid rgba(240,128,128,0.3)}
+.badge-loading{color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15)}
+.badge small{font-size:11px;opacity:0.75}
+.edit-balance-wrap{text-align:right}
+.edit-balance-label{font-size:11px;color:rgba(255,255,255,0.45);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}
+#balanceInput{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:10px 16px;color:white;font-family:‘DM Sans’,sans-serif;font-size:16px;font-weight:500;outline:none;width:200px;text-align:right}
+.alloc-bar{margin-top:24px;display:flex;height:6px;border-radius:3px;overflow:hidden;gap:2px;position:relative;z-index:1}
+.alloc-bar-seg{transition:flex 0.5s ease}
+
+#liveBar{background:rgba(27,58,107,0.95);padding:7px 48px;display:flex;align-items:center;gap:10px;font-size:12px;color:rgba(255,255,255,0.6)}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#7EDBA8;flex-shrink:0}
+.live-dot.loading{background:#F5C842;animation:pulse 1s infinite}
+.live-dot.error{background:#F08080}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+.body-grid{padding:28px 48px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.card{background:white;border-radius:12px;padding:28px;box-shadow:0 1px 4px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04)}
+.card-title{font-family:‘Playfair Display’,serif;font-size:20px;color:#0F2447;font-weight:600}
+.card-sub{font-size:12px;color:#7A8CA0;margin-top:4px}
+
+.alloc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.add-btn{background:#1B3A6B;color:white;border:none;border-radius:6px;padding:7px 14px;font-family:‘DM Sans’,sans-serif;font-size:12px;font-weight:500;cursor:pointer}
+.add-btn:hover{background:#2E6DA4}
+.refresh-btn{background:none;border:1px solid #D0DAE8;color:#4A5E74;border-radius:6px;padding:6px 12px;font-family:‘DM Sans’,sans-serif;font-size:12px;cursor:pointer;margin-right:8px}
+.refresh-btn:hover{background:#F0F4FA}
+
+.tbl-head{display:grid;grid-template-columns:1fr 48px 88px 90px 95px 28px;gap:8px;padding:8px 0 8px 18px;border-bottom:2px solid #E8EDF3}
+.tbl-head span{font-size:11px;font-weight:500;color:#9AABB8;text-transform:uppercase;letter-spacing:0.08em}
+.tbl-head span:not(:first-child){text-align:right}
+#fundRows{margin-top:4px}
+.fund-row{display:grid;grid-template-columns:1fr 48px 88px 90px 95px 28px;gap:8px;align-items:center;padding:10px 0 10px 18px;border-bottom:1px solid #E8EDF3;position:relative}
+.fund-dot{position:absolute;left:0;top:50%;transform:translateY(-50%);width:8px;height:8px;border-radius:50%}
+.fund-name-input{background:none;border:none;font-family:‘DM Sans’,sans-serif;font-size:13px;color:#1a2744;font-weight:500;outline:none;width:100%}
+.fund-pct{font-size:13px;color:#7A8CA0;text-align:right}
+.fund-bal{font-size:13px;color:#4A5E74;text-align:right}
+.fund-gl,.fund-daily{text-align:right}
+.gl-dollar,.d-pct{font-size:12px;font-weight:600}
+.gl-pct,.d-dollar{font-size:11px;margin-top:1px}
+.d-loading{font-size:11px;color:#B0BCC8;font-style:italic;text-align:right}
+.del-btn{background:none;border:none;cursor:pointer;color:#C0CADA;font-size:18px;line-height:1;text-align:right}
+.del-btn:hover{color:#8B1A1A}
+
+.proj-inputs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0 20px}
+.proj-inputs label{font-size:11px;font-weight:500;color:#7A8CA0;text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:5px}
+.proj-inputs input{background:#F0F4FA;border:1px solid #D0DAE8;border-radius:6px;padding:8px 12px;font-family:‘DM Sans’,sans-serif;font-size:14px;color:#1a2744;outline:none;width:100%}
+.proj-summary{margin-top:14px;padding:12px 16px;background:#F4F7FB;border-radius:8px;display:flex;justify-content:space-between}
+.proj-summary-item{text-align:center}
+.ps-label{font-size:11px;color:#9AABB8;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px}
+.ps-val{font-family:‘Playfair Display’,serif;font-size:16px;color:#1B3A6B;font-weight:600}
+.footer{text-align:center;padding:0 0 24px;font-size:11px;color:#B0BCC8}
+
+@media(max-width:900px){
+.body-grid{grid-template-columns:1fr;padding:20px 16px}
+#header,#liveBar{padding-left:20px;padding-right:20px}
+.header-inner{flex-direction:column;gap:16px}
+#balanceInput{width:160px}
+.tbl-head,.fund-row{grid-template-columns:1fr 40px 78px 80px 82px 24px;gap:5px}
